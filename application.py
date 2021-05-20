@@ -1,6 +1,5 @@
 import sys
 from PyQt5 import sip
-# import pyperclip
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
