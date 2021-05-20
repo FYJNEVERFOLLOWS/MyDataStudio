@@ -1,5 +1,7 @@
 import subprocess
 
+# this script has nothing to do with the project, for testing only.
+
 # execute command, and return the output
 # def execCmd(cmd):
 #     r = os.popen(cmd)
