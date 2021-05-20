@@ -1,128 +1,19 @@
-import sys
 from PyQt5 import sip
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 
+import constant
 import comboCheckBox
 import connect_mysql
 import showSqlResult
 
 dbc = connect_mysql.myDBC()
-combolist = [u'账户资产信息', u'产品信息', u'账户持仓信息', u'策略指令信息', u'策略净值估值信息', u'账户交易信息', u'账户交易流水信息']
-comboDict = {0: [u'权益历史信息表', u'期货账户历史信息表', u'两融账户历史信息表', u'期权账户历史信息表'],
-             1: [u'产品资产值表', u'产品出入金表', u'产品净值表'],
-             2: [u'权益账户持仓历史信息表', u'期货账户持仓历史信息表', u'两融账户持仓历史信息表', u'期权账户持仓历史信息表'],
-             3: [u'转债期货策略指令信息表', u'转债两融策略指令信息表', u'期权中高频策略', u'期权中低频多头策略', u'期权中低频空头策略', u'补单指令信息表', u'股票策略指令信息表'],
-             4: [u'转债期货策略估值信息表', u'转债两融策略估值信息表', u'期权中高频策略估值信息表1', u'期权中高频策略估值信息表2', u'期权中高频策略估值信息表3', u'股票策略估值信息表',
-                 u'转债期货策略持仓信息表', u'转债两融策略持仓信息表', u'期权中高频策略持仓信息表1', u'期权中高频策略持仓信息表2', u'期权中高频策略持仓信息表3', u'股票策略持仓信息表',
-                 u'转债期货策略净值信息表', u'转债两融策略净值信息表', u'期权中高频策略净值信息表1', u'期权中高频策略净值信息表2', u'期权中高频策略净值信息表3', u'股票策略净值信息表'],
-             5: [u'交易记录信息表', u'权益交易信息表', u'期货交易信息表', u'两融交易信息表', u'期权交易信息表'],
-             6: [u'权益账户交易历史信息表', u'期货账户交易历史信息表', u'两融账户交易历史信息表', u'期权账户交易历史信息表']}
-colDict = {0: {
-    0: ['product_name', 'account_id', 'account_type', 'total_value', 'market_value', 'total_cash', 'available_cash',
-        'holding_pnl'],
-    1: ['product_name', 'account_id', 'account_type', 'total_value', 'margin', 'total_cash', 'available_cash',
-        'position_pnl', 'trading_pnl', 'transaction_cost', 'risk_degree'],
-    2: ['product_name', 'account_id', 'account_type', 'total_assets', 'net_assets', 'total_liability', 'pnl',
-        'available_margin', 'maintenance_margin_rate', 'available_cash', 'total_cash', 'interest'],
-    3: ['product_name', 'account_id', 'account_type', 'total_value', 'margin', 'total_cash', 'available_cash',
-        'preminum_received', 'preminum_paid', 'transaction_cost', 'risk_degree']},
-    1: {0: ['total_value', 'transfer_cash'],
-        1: ['product_name', 'trusteeship_cash', 'transfer_cash', 'direction', 'counter_account',
-            'counter_account_id', 'note'],
-        2: ['total_value', 'transfer_cash', 'total_value_yes', 'pct_chg', 'static_net_value', 'net_value']},
-    2: {0: ['account_id', 'account_type', 'code', 'symbol', 'exchange', 'quantity', 'sellable', 'avg_price',
-            'avg_price2', 'last_price', 'market_value', 'holding_pnl'],
-        1: ['account_id', 'account_type', 'code', 'symbol', 'exchange', 'buy_quantity', 'buy_avg_open_price',
-            'sell_quantity', 'sell_avg_open_price', 'margin', 'position_pnl'],
-        2: ['account_id', 'account_type', 'open_date', 'delivery_date', 'code', 'symbol', 'exchange',
-            'sell_avg_open_price', 'sell_margin_rate', 'sell_margin', 'sell_transaction_cost',
-            'sell_margin_quantity', 'sell_total_margin_quantity'],
-        3: ['account_id', 'account_type', 'code', 'symbol', 'exchange', 'side', 'quantity', 'avg_open_price',
-            'margin', 'position_pnl', 'pnl']},
-    3: {0: ['code', 'amount', 'part'],
-        1: ['stock_code', 'stock_amount', 'cbond_code', 'cbond_amount'],
-        2: ['code', 'amount'],
-        3: ['code', 'amount'],
-        4: ['code', 'amount'],
-        5: ['code', 'amount'],
-        6: ['code', 'amount', 'part']},
-    4: {0: ['code', 'symbol', 'avg_price', 'amount', 'avg_price_old', 'amount_old', 'avg_price_reb',
-            'amount_reb', 'part', 'close', 'close_yes', 'mvalue', 'mvalue_yes', 'mvalue_reb', 'pct_chg',
-            'pos_pert', 'pnl_reb', 'pnl_old_holding', 'pnl'],
-        1: ['stock_code', 'stock_symbol', 'stock_avg_price', 'stock_amount', 'stock_avg_price_old',
-            'stock_amount_old', 'stock_avg_price_reb', 'stock_amount_reb', 'cbond_code', 'cbond_symbol',
-            'cbond_avg_price', 'cbond_amount', 'cbond_avg_price_old',
-            'cbond_amount_old', 'cbond_avg_price_reb', 'cbond_amount_reb', 'stock_close', 'cbond_close',
-            'stock_mvalue', 'cbond_mvalue', 'stock_close_yes', 'cbond_close_yes', 'stock_mvalue_yes',
-            'cbond_mvalue_yes', 'stock_mvalue_reb', 'cbond_mvalue_reb',
-            'pct_chg', 'stock_pct_chg', 'cbond_pct_chg', 'stock_pos_pert', 'cbond_pos_pert', 'stock_pnl_reb',
-            'stock_pnl_old_holding', 'cbond_pnl_reb', 'cbond_pnl_old_holding', 'stock_pnl', 'cbond_pnl', 'pnl'],
-        2: ['code', 'symbol', 'underlying', 'avg_price', 'amount', 'avg_price_old', 'amount_old',
-            'avg_price_reb', 'amount_reb', 'multiplier', 'close', 'close_yes', 'mvalue', 'mvalue_yes',
-            'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl'],
-        3: ['code', 'symbol', 'underlying', 'avg_price', 'amount', 'avg_price_old', 'amount_old',
-            'avg_price_reb', 'amount_reb', 'multiplier', 'close', 'close_yes', 'mvalue', 'mvalue_yes',
-            'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl'],
-        4: ['code', 'symbol', 'underlying', 'avg_price', 'amount', 'avg_price_old', 'amount_old',
-            'avg_price_reb', 'amount_reb', 'multiplier', 'close', 'close_yes', 'mvalue', 'mvalue_yes',
-            'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl'],
-        5: ['code', 'symbol', 'avg_price', 'amount', 'avg_price_old', 'amount_old', 'avg_price_reb',
-            'amount_reb', 'part', 'close', 'close_yes', 'mvalue', 'mvalue_yes', 'mvalue_reb', 'pct_chg',
-            'pos_pert', 'pnl_reb', 'pnl_old_holding', 'pnl'],
-        6: ['code', 'symbol', 'avg_price', 'amount', 'avg_price_old', 'amount_old', 'avg_price_reb',
-            'amount_reb', 'part'],
-        7: ['stock_code', 'stock_symbol', 'stock_avg_price', 'stock_amount', 'stock_avg_price_old',
-            'stock_amount_old', 'stock_avg_price_reb', 'stock_amount_reb', 'cbond_code', 'cbond_symbol',
-            'cbond_avg_price', 'cbond_amount', 'cbond_avg_price_old',
-            'cbond_amount_old', 'cbond_avg_price_reb', 'cbond_amount_reb'],
-        8: ['code', 'symbol', 'underlying', 'avg_price', 'amount', 'avg_price_old', 'amount_old',
-            'avg_price_reb', 'amount_reb'],
-        9: ['code', 'symbol', 'underlying', 'avg_price', 'amount', 'avg_price_old', 'amount_old',
-            'avg_price_reb', 'amount_reb'],
-        10: ['code', 'symbol', 'underlying', 'avg_price', 'amount', 'avg_price_old', 'amount_old',
-             'avg_price_reb', 'amount_reb'],
-        11: ['code', 'symbol', 'avg_price', 'amount', 'avg_price_old', 'amount_old', 'avg_price_reb',
-             'amount_reb', 'part'],
-        12: ['part', 'cbond_mvalue', 'futures_mvalue', 'cbond_mvalue_yes', 'futures_mvalue_yes',
-             'cbond_mvalue_reb', 'futures_mvalue_reb', 'cbond_pct_chg', 'futures_pct_chg', 'pct_chg',
-             'cbond_pos_pert', 'futures_pos_pert',
-             'futures_wgt', 'cbond_pnl_reb', 'cbond_pnl_old_holding', 'futures_pnl_reb',
-             'futures_pnl_old_holding', 'cbond_pnl', 'futures_pnl', 'pnl'],
-        13: ['stock_mvalue', 'cbond_mvalue', 'stock_mvalue_yes', 'cbond_mvalue_yes', 'stock_mvalue_reb',
-             'cbond_mvalue_reb', 'stock_pct_chg', 'cbond_pct_chg', 'pct_chg', 'stock_pnl_reb',
-             'stock_pnl_old_holding',
-             'cbond_pnl_reb', 'cbond_pnl_old_holding', 'stock_pnl', 'cbond_pnl', 'pnl'],
-        14: ['mvalue', 'mvalue_yes', 'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl', 'underlying'],
-        15: ['mvalue', 'mvalue_yes', 'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl', 'underlying'],
-        16: ['mvalue', 'mvalue_yes', 'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl', 'underlying'],
-        17: ['part', 'mvalue', 'mvalue_yes', 'mvalue_reb', 'pnl_reb', 'pnl_old_holding', 'pnl']},
-    5: {0: ['code', 'symbol', 'direction', 'pos_effect', 'amount', 'avg_price', 'trans_type', 'source'],
-        1: ['code', 'symbol', 'direction', 'total_amount', 'avg_price', 'trans_type'],
-        2: ['code', 'symbol', 'direction', 'pos_effect', 'total_volume', 'avg_price', 'trans_type'],
-        3: ['code', 'symbol', 'direction', 'total_amount', 'avg_price', 'trans_type'],
-        4: ['code', 'symbol', 'direction', 'pos_effect', 'total_volume', 'avg_price', 'trans_type']},
-    6: {0: ['account_id', 'time', 'code', 'symbol', 'exchange', 'direction', 'amount', 'price', 'trans_type'],
-        1: ['account_id', 'time', 'code', 'symbol', 'exchange', 'direction', 'pos_effect', 'volume', 'price',
-            'fee', 'realized_pnl', 'trans_type'],
-        2: ['account_id', 'time', 'code', 'symbol', 'exchange', 'direction', 'amount', 'price', 'trans_type'],
-        3: ['account_id', 'time', 'code', 'symbol', 'exchange', 'direction', 'pos_effect', 'volume', 'price',
-            'trans_type']}}
-sqlDict = {0: {0: 'acc_equity', 1: 'acc_futures', 2: 'acc_margin', 3: 'acc_option'},
-           1: {0: 'pdt_acc_value', 1: 'pdt_deposit', 2: 'pdt_net_value'},
-           2: {0: 'pos_equity', 1: 'pos_futures', 2: 'pos_margin', 3: 'pos_option'},
-           3: {0: 'sig_futures', 1: 'sig_margin', 2: 'sig_option1', 3: 'sig_option2', 4: 'sig_option3', 5: 'sig_other',
-               6: 'sig_stock'},
-           4: {0: 'stgy_ass_futures', 1: 'stgy_ass_margin', 2: 'stgy_ass_option1', 3: 'stgy_ass_option2',
-               4: 'stgy_ass_option3', 5: 'stgy_ass_stock',
-               6: 'stgy_pos_futures', 7: 'stgy_pos_margin', 8: 'stgy_pos_option1', 9: 'stgy_pos_option2',
-               10: 'stgy_pos_option3', 11: 'stgy_pos_stock',
-               12: 'stgy_value_futures', 13: 'stgy_value_margin', 14: 'stgy_value_option1', 15: 'stgy_value_option2',
-               16: 'stgy_value_option3', 17: 'stgy_value_stock'},
-           5: {0: 'trade_all', 1: 'trade_equity', 2: 'trade_futures', 3: 'trade_margin', 4: 'trade_option'},
-           6: {0: 'trans_equity', 1: 'trans_futures', 2: 'trans_margin', 3: 'trans_option'}}
+combolist = constant.COMBOLIST
+comboDict = constant.COMBODICT
+colDict = constant.COLDICT
+sqlDict = constant.SQLDICT
 
 class newTab(QWidget):
     def __init__(self):
