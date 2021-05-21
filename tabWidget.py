@@ -1,21 +1,18 @@
-from PyQt5 import sip
+import time
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
-
 
 import func1_tab
 import func2_tab
 
 
 class newTabWidget(QTabWidget):
-    tabcnt = 3
-    idx2tabid_dict = {0: 1, 1: 2, 2: 3}
 
     def __init__(self, func):
         super(newTabWidget, self).__init__()
         self.initUI(func)
+        self.tabcnt = 3
+        self.idx2tabid_dict = {0: 1, 1: 2, 2: 3}
 
     def initUI(self, func):
         # 创建3个选项卡小控件窗口
@@ -34,12 +31,6 @@ class newTabWidget(QTabWidget):
             self.tab2.newTab_but.clicked.connect(self.newTab2UI)  # 新建按钮
             self.tab3.newTab_but.clicked.connect(self.newTab2UI)  # 新建按钮
 
-        # self.tab1.newTab_but.clicked.connect(lambda: self.newTabUI(func))  # 新建按钮
-        # self.tab2.newTab_but.clicked.connect(lambda: self.newTabUI(func))  # 新建按钮
-        # self.tab3.newTab_but.clicked.connect(lambda: self.newTabUI(func))  # 新建按钮
-        # self.tab1.newTab_but.clicked.connect(self.newTabUI)  # 新建按钮
-        # self.tab2.newTab_but.clicked.connect(self.newTabUI)  # 新建按钮
-        # self.tab3.newTab_but.clicked.connect(self.newTabUI)  # 新建按钮
 
         self.setTabPosition(QTabWidget.North)
         self.setTabsClosable(True)  # 设置标签页为可关闭
@@ -97,7 +88,18 @@ class newTabWidget(QTabWidget):
             self.close()
         else:
             self.removeTab(index)
+
             # after removingTab, the idx2tabid_dict show change:
             for i in range(index, self.count()):
                 self.idx2tabid_dict[i] = self.idx2tabid_dict[i + 1]
             self.idx2tabid_dict.pop(self.count())
+
+        for i in range(1, self.tabcnt + 1):
+            flag = eval("hasattr(self.tab{}, 't')".format(i))
+            if flag:
+                exec('print(i, self.tab{}.t.isRunning())'.format(i))
+                exec('self.tab{}.t.requestInterruption()'.format(i))
+                time.sleep(2)
+                exec('print(i, self.tab{}.t.isRunning())'.format(i))
+
+
