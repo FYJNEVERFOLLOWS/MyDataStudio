@@ -11,7 +11,6 @@ MYSQL_PASSWD = "azReader"
 MAIN1_PATH = os.path.join(PROJECT_PATH, 'main_1.py')
 MAIN2_PATH = os.path.join(PROJECT_PATH, 'main_2.py')
 
-
 COMBOLIST = [u'账户资产信息', u'产品信息', u'账户持仓信息', u'策略指令信息', u'策略净值估值信息', u'账户交易信息', u'账户交易流水信息']
 COMBODICT = {0: [u'权益历史信息表', u'期货账户历史信息表', u'两融账户历史信息表', u'期权账户历史信息表'],
              1: [u'产品资产值表', u'产品出入金表', u'产品净值表'],
@@ -126,8 +125,7 @@ SQLDICT = {0: {0: 'acc_equity', 1: 'acc_futures', 2: 'acc_margin', 3: 'acc_optio
            5: {0: 'trade_all', 1: 'trade_equity', 2: 'trade_futures', 3: 'trade_margin', 4: 'trade_option'},
            6: {0: 'trans_equity', 1: 'trans_futures', 2: 'trans_margin', 3: 'trans_option'}}
 
-FUNC2_COMBOLIST = ['债股策略估值持仓比对-转债', '债股策略估值持仓比对-股票', '股票策略估值持仓比对', '期权策略估值持仓比对', '股指策略估值持仓比对']
-EXEC_COMBOLIST = ['main_1', 'main_2']
+FUNC2_COMBOLIST = ['债股策略估值持仓比对-转债', '债股策略估值持仓比对-股票', '股票策略估值持仓比对', '期权策略估值持仓比对', '股指策略估值持仓比对', '导入交易流水-指令', '生成产品净值-指令']
 CMDLIST = [INTERPRETER_PATH + " " + MAIN1_PATH, INTERPRETER_PATH + " " + MAIN2_PATH]
 
 SQLLIST = [
