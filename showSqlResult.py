@@ -11,7 +11,7 @@ import connect_mysql
 
 dbc = connect_mysql.myDBC()
 
-
+# this script has nothing to do with the project, for testing only.
 
 class SqlResultWin(QWidget):
     def __init__(self, sql):
