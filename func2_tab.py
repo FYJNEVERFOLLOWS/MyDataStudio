@@ -1,17 +1,17 @@
 import subprocess
 import time
 
-from PyQt5 import sip
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont, QTextCursor
 from PyQt5.QtWidgets import *
 
-import showSqlResult
 import constant
+import connect_mysql
+import tableWidget
 
+dbc = connect_mysql.myDBC()
 combolist = constant.FUNC2_COMBOLIST
-exec_combolist = ['main_1', 'main_2']
 cmdlist = constant.CMDLIST
 # cmdlist = [r"D:\FYJ\PyQt\QtLearning\venv\Scripts\python.exe D:\FYJ\PyQt\choice_data\test.py", r"D:\FYJ\PyQt\MyDataStudio\venv\Scripts\python.exe D:\FYJ\PyQt\MyDataStudio\test.py"]
 
@@ -33,6 +33,9 @@ class MyThread(QThread):
         # p = subprocess.Popen(r"D:\FYJ\PyQt\QtLearning\venv\Scripts\python.exe D:\FYJ\PyQt\choice_data\test.py", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p = subprocess.Popen(cmdlist[self.param], stdout=subprocess.PIPE, stderr=subprocess.PIPE) # 通过成员变量传参
         while True:
+            if self.isInterruptionRequested():
+                p.kill()
+                return
             result = p.stdout.readline()
             # print("result{}".format(result))
             if result != b'':
@@ -41,6 +44,9 @@ class MyThread(QThread):
             else:
                 break
         while True:
+            if self.isInterruptionRequested():
+                p.kill()
+                return
             result = p.stderr.readline()
             # print("result{}".format(result))
             if result != b'':
@@ -68,25 +74,23 @@ class newTab(QWidget):
         self.splitter1 = QSplitter(Qt.Vertical)
         self.splitter1.addWidget(self.frame)
         sp = self.frame.sizePolicy()
-        sp.setVerticalStretch(1)
+        sp.setVerticalStretch(3)
         self.frame.setSizePolicy(sp)
 
 
         self.tabLayout.addWidget(self.splitter1)
         optionFrame = QFrame(self.frame)
-        optionFrame.setGeometry(QRect(100, 0, 1500, 300))
+        optionFrame.setGeometry(QRect(200, 0, 1500, 300))
 
-        # 查询按钮
-        select_but = QPushButton("开始查询", optionFrame)
+        # 执行按钮
+        select_but = QPushButton("开始执行", optionFrame)
         select_but.move(500, 0)
         select_but.clicked.connect(self.showSqlResult)  # 查询按钮
         # 新增标签页按钮
         self.newTab_but = QPushButton("新建查询", optionFrame)
-        self.newTab_but.move(1000, 0)
-        # 执行程序按钮
-        exec_but = QPushButton("开始执行", optionFrame)
-        exec_but.move(800, 0)
-        exec_but.clicked.connect(self.realtime_display)
+        self.newTab_but.move(700, 0)
+
+
         self.date = QDateEdit(QDate.currentDate().addDays(-1), optionFrame)
         self.date.setDisplayFormat("yyyy-MM-dd")  # 设置日期格式
         self.date.setMinimumDate(QDate.currentDate().addDays(-365))  # 设置最小日期
@@ -101,29 +105,37 @@ class newTab(QWidget):
         self.combobox.move(200, 0)
         self.combobox.addItems(combolist)
 
-        self.cmdCombobox = QComboBox(optionFrame)
-        self.cmdCombobox.setFixedSize(100, 25)
-        self.cmdCombobox.move(650, 0)
-        self.cmdCombobox.addItems(exec_combolist)
+        self.outputWidget = QTabWidget()
+        sp = self.outputWidget.sizePolicy()
+        sp.setVerticalStretch(7)
+        self.outputWidget.setSizePolicy(sp)
+        self.splitter1.addWidget(self.outputWidget)
 
-        self.runWidget = QWidget()
-        self.runWidgetLayout = QHBoxLayout(self.runWidget)
-        self.runWidget.resize(1100, 800)
-        self.runTextBrowser = QTextBrowser()
-        self.runWidgetLayout.addWidget(self.runTextBrowser)
-        self.runTextBrowser.setFont(QFont('宋体', 12))
-        self.runTextBrowser.ensureCursorVisible()  # 游标可用
+        self.infoWidget = QWidget()
+        self.infoWidget.resize(1100, 800)
+        self.infoWidgetLayout = QHBoxLayout(self.infoWidget)
 
+        self.textBrowser = QTextBrowser()
+        self.infoWidgetLayout.addWidget(self.textBrowser)
+        self.textBrowser.resize(1100, 800)
+        self.textBrowser.setFont(QFont('宋体', 12))
+        self.textBrowser.ensureCursorVisible()  # 游标可用
+
+        self.resultWidget = QWidget()
+        self.tableWidget = tableWidget.newTableWidget()
+        resultWidgetLayout = QHBoxLayout(self.resultWidget)
+        resultWidgetLayout.addWidget(self.tableWidget, Qt.AlignCenter)
+
+        self.outputWidget.addTab(self.infoWidget, "信息")
+        self.outputWidget.addTab(self.resultWidget, "查询结果")
 
 
         # 每个组件逐一设置字体，很无奈
         optionFrame.setFont(QFont('宋体', 12))
         select_but.setFont(QFont('宋体', 12))
-        exec_but.setFont(QFont('宋体', 12))
         self.newTab_but.setFont(QFont('宋体', 12))
         self.date.setFont(QFont('宋体', 12))
         self.combobox.setFont(QFont('宋体', 12))
-        self.cmdCombobox.setFont(QFont('宋体', 12))
 
 
     def showSqlResult(self):
@@ -134,67 +146,59 @@ class newTab(QWidget):
         if date == "":
             QMessageBox.information(self, "提示", "请选择日期！")
         else:
-            if self.splitter1.count() > 1:
-                sip.delete(self.outputWidget)
+            if index < 5:
+                sql = sqllist[index].format(date)
+                # 把sql执行结果传参给resultWidget的tablewidget
+                results, cols = dbc.select(sql)
+                if results == "Error:":
+                    querytime = "数据库执行查询出现异常"
 
-            self.outputWidget = QTabWidget()
-            sp = self.outputWidget.sizePolicy()
-            sp.setVerticalStretch(50)
-            self.outputWidget.setSizePolicy(sp)
-            self.splitter1.addWidget(self.outputWidget)
-            self.infoWidget = QWidget()
-            self.infoWidget.resize(1100, 800)
-            self.textBrowser = QTextBrowser(self.infoWidget)
-            self.textBrowser.resize(1100, 800)
-            self.textBrowser.setFont(QFont('宋体', 12))
-            self.textBrowser.ensureCursorVisible()  # 游标可用
+                else:
+                    cnt_cols = len(cols)
+                    self.tableWidget.setRowCount(len(results))  # 一定要设置行数，否则不会显示出tableWidget
+                    self.tableWidget.setColumnCount(cnt_cols)
+                    self.tableWidget.setHorizontalHeaderLabels(cols)  # 先设置列数后，设置表头才能生效
+                    self.tableWidget.horizontalHeader().setStyleSheet("color: #00007f")
+                    self.tableWidget.setAlternatingRowColors(True)  # 设置行背景颜色交替
+                    self.tableWidget.setSortingEnabled(True)
+                    self.tableWidget.setStyleSheet("border: 0px; alternate-background-color: #C9E4CC")
+                    x = 0
+                    for row in results:
+                        for y in range(cnt_cols):
+                            self.tableWidget.setItem(x, y, QTableWidgetItem(str(row[y])))
+                        x += 1
+                    self.tableWidget.expaction.triggered.connect(lambda: self.tableWidget.export(cols))  # 使用lambda表达式传递自定义参数
 
-            sql = sqllist[index].format(date)
-            # 向SqlResultWin传参sql
-            self.resultWidget = showSqlResult.SqlResultWin(sql)
-
-            end_time = time.time()
-            querytime = "查询耗时：{}秒".format(end_time - start_time)
-
-            self.textBrowser.setPlainText(querytime)
-            self.textBrowser.resize(1100, 800)
-            self.textBrowser.setFont(QFont('宋体', 12))
-            self.outputWidget.addTab(self.resultWidget, "查询结果")
-            self.outputWidget.addTab(self.infoWidget, "信息")
+                    end_time = time.time()
+                    querytime = "查询耗时：{}秒".format(end_time - start_time)
 
 
+                self.textBrowser.clear()
+                self.textBrowser.setPlainText(querytime)
 
-    def realtime_display(self):
-        print('Running...')
-        index = self.cmdCombobox.currentIndex()
-        try:
-            self.t = MyThread(index)
-            self.t.signalForText.connect(self.onUpdateText)
-            self.t.start()
-        except Exception as e:
-            raise e
+            else:
+                # 执行指令
+                print('Running...')
+                try:
+                    self.t = MyThread(index - 5)
+                    self.t.signalForText.connect(self.onUpdateText)
+                    self.t.start()
+                except Exception as e:
+                    raise e
 
-        loop = QEventLoop()
-        QTimer.singleShot(2000, loop.quit)
-        loop.exec_()
+                # self.loop = QEventLoop()
+                # QTimer.singleShot(1000, self.loop.quit)
+                # self.loop.exec_()
+
+                self.textBrowser.clear()
+
 
     def onUpdateText(self, text):
-        if self.splitter1.count() > 1:
-            self.outputWidget.addTab(self.runWidget, "运行结果")
-        else:
-            self.outputWidget = QTabWidget()
-            sp = self.outputWidget.sizePolicy()
-            sp.setVerticalStretch(50)
-            self.outputWidget.setSizePolicy(sp)
-            self.splitter1.addWidget(self.outputWidget)
-            self.outputWidget.addTab(self.runWidget, "运行结果")
-            # self.outputWidget.setCurrentIndex(2) # 这句不起作用
-
-        cursor = self.runTextBrowser.textCursor()
+        cursor = self.textBrowser.textCursor()
         cursor.movePosition(QTextCursor.End)
-        self.runTextBrowser.append(text)
-        self.runTextBrowser.setTextCursor(cursor)
-        self.runTextBrowser.ensureCursorVisible()
+        self.textBrowser.append(text)
+        self.textBrowser.setTextCursor(cursor)
+        self.textBrowser.ensureCursorVisible()
 
 
 
