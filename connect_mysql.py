@@ -9,7 +9,7 @@ class myDBC():
 
     def select(self, sql):
         # 打开数据库连接
-        db = pymysql.connect(host=constant.MONGO_HOST, user=constant.MONGO_USER, password=constant.MONGO_PASSWD, database="azams")
+        db = pymysql.connect(host=constant.MYSQL_HOST, user=constant.MYSQL_USER, password=constant.MYSQL_PASSWD, database="azams")
 
         # 使用cursor()方法获取操作游标
         cursor = db.cursor()
@@ -27,7 +27,7 @@ class myDBC():
             list_cols = []
             for field_desc in cursor.description:
                 list_cols.append(field_desc[0])
-
+            return results, list_cols
             # for row in results:
             #     print(row)
                 # id = row[0]
@@ -40,15 +40,16 @@ class myDBC():
                 # print("id=%d,code=%s,amount=%f,part=%d,date=%s,product_id=%s" % \
                 #       (id, code, amount, part, date,product_id))
         except:
-            print("Error: unable to fetch data")
+            return "Error:", "unable to fetch data"
 
-        return results, list_cols
         # 关闭数据库连接
         db.close()
 
 if __name__ == "__main__":
     dbc = myDBC()
-    dbc.select("SELECT * FROM acc_equity WHERE date_format(date,'%Y-%m-%d') >= '2021-01-01' and date_format(date,'%Y-%m-%d') <= '2021-04-19'")
+    # results, cols= dbc.select("SELECT * FROM acc_equity WHERE date_format(date,'%Y-%m-%d') >= '2021-01-01' and date_format(date,'%Y-%m-%d') <= '2021-04-19'")
+    results, cols= dbc.select("SELECT * FROM  WHERE date_format(date,'%Y-%m-%d') >= '2021-05-01' and date_format(date,'%Y-%m-%d') <= '2021-04-19'")
+    print(results, cols)
     # dbc.select("SELECT * FROM pdt_deposit")
     # dbc.select("SELECT * FROM pos_futures")
     # dbc.select("SELECT * FROM sig_stock")
