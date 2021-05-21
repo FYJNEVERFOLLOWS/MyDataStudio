@@ -1,4 +1,6 @@
 import sys
+import time
+
 from PyQt5 import sip
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont
@@ -45,11 +47,18 @@ class MyMainWin(QMainWindow):
             if flag:
                 exec('self.tabWidget2.tab{}.subwin.close()'.format(i))
 
+        #########################  kill the thread  ###########################
+        for i in range(1, self.tabWidget2.tabcnt + 1):
+            flag = eval("hasattr(self.tabWidget2.tab{}, 't')".format(i))
+            if flag:
+                exec('print(i, self.tabWidget2.tab{}.t.isRunning())'.format(i))
+                runflag = eval("self.tabWidget2.tab{}.t.isRunning()".format(i))
+                if runflag:
+                    exec('self.tabWidget2.tab{}.t.requestInterruption()'.format(i))
+                    time.sleep(5)
+                exec('print(i, self.tabWidget2.tab{}.t.isRunning())'.format(i))
+        #########################################################################
 
-        # self.subwin.setWindowTitle(tab.comboDict[params[0]][params[1]])
-        # self.subwin.show()
-        # hBoxLayout = QHBoxLayout(self.subwin)
-        # hBoxLayout.addWidget(resWidget)
 
 
 
