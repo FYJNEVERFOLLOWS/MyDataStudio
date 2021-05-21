@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import *
 import constant
 import comboCheckBox
 import connect_mysql
-import showSqlResult
+import tableWidget
 
 dbc = connect_mysql.myDBC()
 combolist = constant.COMBOLIST
@@ -72,6 +72,12 @@ class newTab(QWidget):
         # 新增标签页按钮
         self.newTab_but = QPushButton("新建查询", optionFrame)
         self.newTab_but.move(800, 0)
+
+        self.resultWidget = tableWidget.newTableWidget()
+        self.splitter2.addWidget(self.resultWidget)
+        sp = self.resultWidget.sizePolicy()
+        sp.setVerticalStretch(4)
+        self.resultWidget.setSizePolicy(sp)
 
         # 每个组件逐一设置字体，很无奈
         optionFrame.setFont(QFont('宋体', 12))
@@ -202,9 +208,6 @@ class newTab(QWidget):
         if len(self.product_id.getCheckItems()) == 0:
             QMessageBox.information(self, "提示", "请选择产品代码！")
         else:
-            if self.splitter2.count() > 1:
-                sip.delete(self.resultWidget)
-
             cols = ''
             for idx, col in enumerate(col_selected):
                 if idx > 0:
@@ -216,10 +219,22 @@ class newTab(QWidget):
                 array_pdtid_selected += "'" + val + "',"  # 后面用[:-1]切片去掉最后一个逗号
             sql = "SELECT {} FROM {} WHERE product_id IN ({}) and date_format(date,'%Y-%m-%d') >= '{}' and date_format(date,'%Y-%m-%d') <= '{}'".format(
                 cols, sqlDict[firstIndex][secondIndex], array_pdtid_selected[:-1], start_date, end_date)
+            # 把sql执行结果传参给resultWidget的tablewidget
+            results, cols = dbc.select(sql)
+
+            cnt_cols = len(cols)
+            self.resultWidget.setRowCount(len(results))  # 一定要设置行数，否则不会显示出tableWidget
+            self.resultWidget.setColumnCount(cnt_cols)
+            self.resultWidget.setHorizontalHeaderLabels(cols)  # 先设置列数后，设置表头才能生效
+            self.resultWidget.horizontalHeader().setStyleSheet("color: #00007f")
+            self.resultWidget.setAlternatingRowColors(True)  # 设置行背景颜色交替
+            self.resultWidget.setSortingEnabled(True)
+            self.resultWidget.setStyleSheet("border: 0px; alternate-background-color: #C9E4CC")
+            x = 0
+            for row in results:
+                for y in range(cnt_cols):
+                    self.resultWidget.setItem(x, y, QTableWidgetItem(str(row[y])))
+                x += 1
+            self.resultWidget.expaction.triggered.connect(lambda: self.resultWidget.export(cols))  # 使用lambda表达式传递自定义参数
 
 
-            self.resultWidget = showSqlResult.SqlResultWin(sql)
-            self.splitter2.addWidget(self.resultWidget)
-            sp = self.resultWidget.sizePolicy()
-            sp.setVerticalStretch(4)
-            self.resultWidget.setSizePolicy(sp)
