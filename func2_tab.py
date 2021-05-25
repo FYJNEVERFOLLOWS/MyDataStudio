@@ -177,6 +177,9 @@ class newTab(QWidget):
                 self.textBrowser.setPlainText(querytime)
 
             else:
+                # 清除上一次的查询结果
+                self.tableWidget.setRowCount(0) # 一定要设置行数，否则不会显示出tableWidget
+                self.tableWidget.setColumnCount(0)
                 # 执行指令
                 print('Running...')
                 try:
